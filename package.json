@@ -1,0 +1,21 @@
+{
+  "name": "helius-cli",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Solana CLI for Helius APIs — built with incur",
+  "bin": {
+    "helius": "./bin/helius.js"
+  },
+  "scripts": {
+    "dev": "tsx src/cli.ts",
+    "build": "tsc",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "incur": "^0.1.5"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
