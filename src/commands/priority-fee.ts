@@ -39,7 +39,7 @@ export const priorityFee = Cli.create('priority-fee', {
     }
 
     const result = (await rpcCall(
-      c.env.HELIUS_API_KEY,
+      c.env,
       'getPriorityFeeEstimate',
       [params],
     )) as { priorityFeeLevels: Record<string, number> }

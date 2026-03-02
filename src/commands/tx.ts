@@ -42,7 +42,7 @@ tx.command('parse', {
     { args: { signature: '<tx-signature>' }, description: 'Parse a transaction' },
   ],
   async run(c) {
-    const txs = (await restCall(c.env.HELIUS_API_KEY, '/v0/transactions', {
+    const txs = (await restCall(c.env, '/v0/transactions', {
       body: { transactions: [c.args.signature] },
     })) as any[]
 
@@ -129,7 +129,7 @@ tx.command('history', {
     const qs = params.toString()
     const path = `/v0/addresses/${c.args.address}/transactions${qs ? `?${qs}` : ''}`
 
-    const txs = (await restCall(c.env.HELIUS_API_KEY, path)) as any[]
+    const txs = (await restCall(c.env, path, undefined)) as any[]
 
     for (const t of txs) {
       yield {

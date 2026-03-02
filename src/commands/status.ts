@@ -17,14 +17,13 @@ export const status = Cli.create('status', {
   }),
   examples: [{ description: 'Check all Helius services' }],
   async run(c) {
-    const key = c.env.HELIUS_API_KEY
     const [health, slot, samples, senderOk] = await Promise.all([
-      rpcCall(key, 'getHealth').then(() => true).catch(() => false),
-      rpcCall(key, 'getSlot') as Promise<number>,
-      rpcCall(key, 'getRecentPerformanceSamples', [1]) as Promise<
+      rpcCall(c.env, 'getHealth').then(() => true).catch(() => false),
+      rpcCall(c.env, 'getSlot') as Promise<number>,
+      rpcCall(c.env, 'getRecentPerformanceSamples', [1]) as Promise<
         { numTransactions: number; samplePeriodSecs: number }[]
       >,
-      fetch(`https://sender.helius-rpc.com/ping?api-key=${key}`)
+      fetch(`https://sender.helius-rpc.com/ping?api-key=${c.env.HELIUS_API_KEY}`)
         .then((r) => r.ok)
         .catch(() => false),
     ])

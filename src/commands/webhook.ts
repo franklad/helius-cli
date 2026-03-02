@@ -43,7 +43,7 @@ webhook.command('create', {
     if (c.options.authHeader) body.authHeader = c.options.authHeader
     if (c.options.txnStatus) body.txnStatus = c.options.txnStatus
 
-    const result = (await webhookCall(c.env.HELIUS_API_KEY, '/v0/webhooks', {
+    const result = (await webhookCall(c.env, '/v0/webhooks', {
       body,
     })) as { webhookID: string; webhookURL: string }
 
@@ -81,7 +81,7 @@ webhook.command('get', {
   ],
   async run(c) {
     const result = (await webhookCall(
-      c.env.HELIUS_API_KEY,
+      c.env,
       `/v0/webhooks/${c.args.id}`,
     )) as any
 
@@ -117,7 +117,7 @@ webhook.command('list', {
   examples: [{ description: 'List all webhooks' }],
   async run(c) {
     const result = (await webhookCall(
-      c.env.HELIUS_API_KEY,
+      c.env,
       '/v0/webhooks',
     )) as any[]
 
@@ -172,7 +172,7 @@ webhook.command('update', {
     if (c.options.authHeader) body.authHeader = c.options.authHeader
     if (c.options.txnStatus) body.txnStatus = c.options.txnStatus
 
-    const result = (await webhookCall(c.env.HELIUS_API_KEY, `/v0/webhooks/${c.args.id}`, {
+    const result = (await webhookCall(c.env, `/v0/webhooks/${c.args.id}`, {
       method: 'PUT',
       body,
     })) as any
@@ -204,7 +204,7 @@ webhook.command('delete', {
     },
   ],
   async run(c) {
-    await webhookCall(c.env.HELIUS_API_KEY, `/v0/webhooks/${c.args.id}`, {
+    await webhookCall(c.env, `/v0/webhooks/${c.args.id}`, {
       method: 'DELETE',
     })
 

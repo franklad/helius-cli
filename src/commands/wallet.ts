@@ -24,7 +24,7 @@ wallet.command('identity', {
   ],
   async run(c) {
     const result = (await walletCall(
-      c.env.HELIUS_API_KEY,
+      c.env,
       `/v1/wallet/${c.args.address}/identity`,
     )) as any
 
@@ -64,7 +64,7 @@ wallet.command('batch-identity', {
   ],
   async run(c) {
     const addresses = c.args.addresses.split(',').map((s) => s.trim())
-    const result = (await walletCall(c.env.HELIUS_API_KEY, '/v1/wallet/batch-identity', {
+    const result = (await walletCall(c.env, '/v1/wallet/batch-identity', {
       body: { addresses },
     })) as any[]
 
@@ -130,7 +130,7 @@ wallet.command('balances', {
     })
 
     const result = (await walletCall(
-      c.env.HELIUS_API_KEY,
+      c.env,
       `/v1/wallet/${c.args.address}/balances?${params}`,
     )) as any
 
@@ -208,7 +208,7 @@ wallet.command('history', {
     if (c.options.tokenAccounts !== 'balanceChanged') params.set('tokenAccounts', c.options.tokenAccounts)
 
     const result = (await walletCall(
-      c.env.HELIUS_API_KEY,
+      c.env,
       `/v1/wallet/${c.args.address}/history?${params}`,
     )) as any
 
@@ -272,7 +272,7 @@ wallet.command('transfers', {
     if (c.options.cursor) params.set('cursor', c.options.cursor)
 
     const result = (await walletCall(
-      c.env.HELIUS_API_KEY,
+      c.env,
       `/v1/wallet/${c.args.address}/transfers?${params}`,
     )) as any
 
@@ -324,7 +324,7 @@ wallet.command('funded-by', {
   ],
   async run(c) {
     const result = (await walletCall(
-      c.env.HELIUS_API_KEY,
+      c.env,
       `/v1/wallet/${c.args.address}/funded-by`,
     )) as any
 

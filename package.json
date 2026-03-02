@@ -7,15 +7,16 @@
     "helius": "./bin/helius.js"
   },
   "scripts": {
-    "dev": "tsx src/cli.ts",
+    "dev": "bun run src/cli.ts",
     "build": "tsc",
-    "start": "node dist/cli.js"
+    "typecheck": "tsc --noEmit",
+    "start": "bun dist/cli.js"
   },
   "dependencies": {
     "incur": "^0.1.5"
   },
   "devDependencies": {
-    "tsx": "^4.19.0",
+    "@types/bun": "^1.3.9",
     "typescript": "^5.7.0"
   }
 }

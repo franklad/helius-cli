@@ -67,7 +67,7 @@ das.command('assets', {
     { args: { address: '<wallet-address>' }, options: { showFungible: true, limit: 50 }, description: 'Include fungible tokens' },
   ],
   async run(c) {
-    const result = (await rpcCall(c.env.HELIUS_API_KEY, 'getAssetsByOwner', {
+    const result = (await rpcCall(c.env, 'getAssetsByOwner', {
       ownerAddress: c.args.address,
       page: c.options.page,
       limit: c.options.limit,
@@ -77,16 +77,7 @@ das.command('assets', {
       },
     })) as { total: number; items: any[] }
 
-    const items = result.items.map((item: any) => ({
-      id: item.id as string,
-      name: (item.content?.metadata?.name ?? item.id) as string,
-      type: (item.interface ?? 'unknown') as string,
-      collection: item.grouping?.find((g: any) => g.group_key === 'collection')
-        ?.group_value as string | undefined,
-      image: (item.content?.links?.image ?? item.content?.files?.[0]?.uri) as
-        | string
-        | undefined,
-    }))
+    const items = result.items.map(mapAsset)
 
     return c.ok({ total: result.total, items }, {
       cta: {
@@ -137,18 +128,9 @@ das.command('search', {
     if (c.options.creator) params.creatorAddress = c.options.creator
     if (c.options.compressed !== undefined) params.compressed = c.options.compressed
 
-    const result = (await rpcCall(c.env.HELIUS_API_KEY, 'searchAssets', params)) as { total: number; items: any[] }
+    const result = (await rpcCall(c.env, 'searchAssets', params)) as { total: number; items: any[] }
 
-    const items = result.items.map((item: any) => ({
-      id: item.id as string,
-      name: (item.content?.metadata?.name ?? item.id) as string,
-      type: (item.interface ?? 'unknown') as string,
-      collection: item.grouping?.find((g: any) => g.group_key === 'collection')
-        ?.group_value as string | undefined,
-      image: (item.content?.links?.image ?? item.content?.files?.[0]?.uri) as
-        | string
-        | undefined,
-    }))
+    const items = result.items.map(mapAsset)
 
     return c.ok({ total: result.total, items }, {
       cta: {
@@ -192,7 +174,7 @@ das.command('get', {
     { args: { id: '<asset-mint-address>' }, description: 'Get asset details' },
   ],
   async run(c) {
-    const result = (await rpcCall(c.env.HELIUS_API_KEY, 'getAsset', { id: c.args.id })) as any
+    const result = (await rpcCall(c.env, 'getAsset', { id: c.args.id })) as any
 
     return c.ok({
       ...mapAsset(result),
@@ -228,7 +210,7 @@ das.command('get-batch', {
   ],
   async run(c) {
     const ids = c.args.ids.split(',').map((s) => s.trim())
-    const result = (await rpcCall(c.env.HELIUS_API_KEY, 'getAssetBatch', { ids })) as any[]
+    const result = (await rpcCall(c.env, 'getAssetBatch', { ids })) as any[]
 
     return c.ok(result.map(mapAsset), {
       cta: {
@@ -258,7 +240,7 @@ das.command('proof', {
     { args: { id: '<compressed-asset-id>' }, description: 'Get merkle proof' },
   ],
   async run(c) {
-    const result = (await rpcCall(c.env.HELIUS_API_KEY, 'getAssetProof', { id: c.args.id })) as any
+    const result = (await rpcCall(c.env, 'getAssetProof', { id: c.args.id })) as any
 
     return c.ok({
       root: result.root,
@@ -293,7 +275,7 @@ das.command('proof-batch', {
   ],
   async run(c) {
     const ids = c.args.ids.split(',').map((s) => s.trim())
-    const result = (await rpcCall(c.env.HELIUS_API_KEY, 'getAssetProofBatch', { ids })) as Record<string, any>
+    const result = (await rpcCall(c.env, 'getAssetProofBatch', { ids })) as Record<string, any>
 
     return c.ok(Object.entries(result).map(([id, p]) => ({
       id,
@@ -322,7 +304,7 @@ das.command('by-authority', {
     { args: { authority: '<authority-address>' }, description: 'List by authority' },
   ],
   async run(c) {
-    const result = (await rpcCall(c.env.HELIUS_API_KEY, 'getAssetsByAuthority', {
+    const result = (await rpcCall(c.env, 'getAssetsByAuthority', {
       authorityAddress: c.args.authority, page: c.options.page, limit: c.options.limit,
     })) as any
 
@@ -347,7 +329,7 @@ das.command('by-creator', {
     { args: { creator: '<creator-address>' }, description: 'List by creator' },
   ],
   async run(c) {
-    const result = (await rpcCall(c.env.HELIUS_API_KEY, 'getAssetsByCreator', {
+    const result = (await rpcCall(c.env, 'getAssetsByCreator', {
       creatorAddress: c.args.creator, page: c.options.page, limit: c.options.limit,
     })) as any
 
@@ -372,7 +354,7 @@ das.command('by-group', {
     { args: { groupValue: '<collection-address>' }, description: 'List collection assets' },
   ],
   async run(c) {
-    const result = (await rpcCall(c.env.HELIUS_API_KEY, 'getAssetsByGroup', {
+    const result = (await rpcCall(c.env, 'getAssetsByGroup', {
       groupKey: c.options.groupKey, groupValue: c.args.groupValue, page: c.options.page, limit: c.options.limit,
     })) as any
 
@@ -403,7 +385,7 @@ das.command('editions', {
     { args: { mint: '<master-edition-mint>' }, description: 'List editions' },
   ],
   async run(c) {
-    const result = (await rpcCall(c.env.HELIUS_API_KEY, 'getNftEditions', {
+    const result = (await rpcCall(c.env, 'getNftEditions', {
       mint: c.args.mint, page: c.options.page, limit: c.options.limit,
     })) as any
 
@@ -436,7 +418,7 @@ das.command('signatures', {
     { args: { id: '<asset-id>' }, description: 'Get signatures for asset' },
   ],
   async run(c) {
-    const result = (await rpcCall(c.env.HELIUS_API_KEY, 'getSignaturesForAsset', {
+    const result = (await rpcCall(c.env, 'getSignaturesForAsset', {
       id: c.args.id, page: c.options.page, limit: c.options.limit,
     })) as any
 
@@ -490,7 +472,7 @@ das.command('token-accounts', {
     if (c.options.owner) params.owner = c.options.owner
     if (c.options.mint) params.mint = c.options.mint
 
-    const result = (await rpcCall(c.env.HELIUS_API_KEY, 'getTokenAccounts', params)) as any
+    const result = (await rpcCall(c.env, 'getTokenAccounts', params)) as any
 
     return c.ok({
       total: result.total ?? 0,

@@ -36,7 +36,7 @@ export const mint = Cli.create('mint', {
     if (c.options.collection) params.collection = c.options.collection
 
     const result = (await rpcCall(
-      c.env.HELIUS_API_KEY,
+      c.env,
       'mintCompressedNft',
       params,
     )) as { signature: string; minted: boolean; assetId: string }
