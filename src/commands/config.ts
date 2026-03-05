@@ -3,17 +3,17 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'fs'
 import { join } from 'path'
 import { homedir } from 'os'
 
-const CONFIG_DIR = join(homedir(), '.helius')
-const CONFIG_FILE = join(CONFIG_DIR, 'config.json')
+export const CONFIG_DIR = join(homedir(), '.helius')
+export const CONFIG_FILE = join(CONFIG_DIR, 'config.json')
 
-interface Config {
+export interface Config {
   apiKey?: string
   network?: 'mainnet' | 'devnet'
   projectId?: string
   jwt?: string
 }
 
-function load(): Config {
+export function loadConfig(): Config {
   try {
     if (existsSync(CONFIG_FILE)) {
       return JSON.parse(readFileSync(CONFIG_FILE, 'utf-8'))
@@ -51,7 +51,7 @@ config.command('show', {
     { options: { reveal: true }, description: 'Show full API key' },
   ],
   async run(c) {
-    const cfg = load()
+    const cfg = loadConfig()
     const displayKey = cfg.apiKey
       ? (c.options.reveal ? cfg.apiKey : cfg.apiKey.slice(0, 8) + '...')
       : null
@@ -78,7 +78,7 @@ config.command('set-api-key', {
     { args: { key: '<your-api-key>' }, description: 'Save API key to config' },
   ],
   async run(c) {
-    const cfg = load()
+    const cfg = loadConfig()
     cfg.apiKey = c.args.key
     save(cfg)
 
@@ -100,7 +100,7 @@ config.command('set-network', {
     { args: { network: 'devnet' }, description: 'Switch to devnet' },
   ],
   async run(c) {
-    const cfg = load()
+    const cfg = loadConfig()
     cfg.network = c.args.network
     save(cfg)
 
@@ -122,7 +122,7 @@ config.command('set-project', {
     { args: { projectId: '<project-id>' }, description: 'Set default project' },
   ],
   async run(c) {
-    const cfg = load()
+    const cfg = loadConfig()
     cfg.projectId = c.args.projectId
     save(cfg)
 
