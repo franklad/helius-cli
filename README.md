@@ -39,6 +39,7 @@ bun start <command>
 | `ws <sub>` | WebSocket subscriptions — account, logs, slot, signature, program |
 | `zk <sub>` | ZK compression (accounts, tokens, proofs, ...) |
 | `config <sub>` | CLI configuration — API key, network, project |
+| `simd <sub>` | Solana Improvement Documents — list and read proposals |
 | `block <slot>` | Block details by slot number |
 | `network` | Solana network status — epoch, version, block height |
 

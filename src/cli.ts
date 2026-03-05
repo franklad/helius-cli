@@ -16,6 +16,7 @@ import { network } from './commands/network.js'
 import { program } from './commands/program.js'
 import { ws } from './commands/ws.js'
 import { config } from './commands/config.js'
+import { simd } from './commands/simd.js'
 
 const cli = Cli.create('helius', {
   description: 'Solana CLI for Helius APIs — DAS, transactions, fees, webhooks, wallet, ZK compression',
@@ -48,6 +49,8 @@ cli.command(wallet)
 cli.command(webhook)
 cli.command(zk)
 cli.command(ws)
+
+cli.command(simd)
 
 // Solana RPC utilities
 cli.command(block)
