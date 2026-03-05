@@ -91,7 +91,7 @@ tx.command('parse', {
   },
 })
 
-// ── history (getTransactionsByAddress) ──
+// ── history (getTransactionsForAddress → REST fallback) ──
 
 tx.command('history', {
   description: 'Parsed transaction history for an address',
@@ -117,18 +117,36 @@ tx.command('history', {
     { args: { address: '<wallet-address>' }, options: { limit: 5, type: 'SWAP' }, description: 'Last 5 swaps' },
   ],
   async *run(c) {
-    const params = new URLSearchParams()
-    if (c.options.limit) params.set('limit', String(c.options.limit))
-    if (c.options.before) params.set('before-signature', c.options.before)
-    if (c.options.after) params.set('after-signature', c.options.after)
-    if (c.options.type) params.set('type', c.options.type)
-    if (c.options.source) params.set('source', c.options.source)
-    if (c.options.sortOrder !== 'desc') params.set('sort-order', c.options.sortOrder)
+    let txs: any[]
 
-    const qs = params.toString()
-    const path = `/v0/addresses/${c.args.address}/transactions${qs ? `?${qs}` : ''}`
+    try {
+      // Try the newer RPC method first (paid plans only, better pagination)
+      const rpcParams: Record<string, unknown> = {
+        address: c.args.address,
+        limit: c.options.limit,
+      }
+      if (c.options.before) rpcParams.before = c.options.before
+      if (c.options.after) rpcParams.after = c.options.after
+      if (c.options.type) rpcParams.type = c.options.type
+      if (c.options.source) rpcParams.source = c.options.source
+      if (c.options.sortOrder !== 'desc') rpcParams.sortOrder = c.options.sortOrder
 
-    const txs = (await c.var.rest(path, undefined)) as any[]
+      const result = (await c.var.rpc('getTransactionsForAddress', rpcParams)) as any
+      txs = result?.data ?? result ?? []
+    } catch {
+      // Fall back to REST endpoint (free plans)
+      const params = new URLSearchParams()
+      if (c.options.limit) params.set('limit', String(c.options.limit))
+      if (c.options.before) params.set('before-signature', c.options.before)
+      if (c.options.after) params.set('after-signature', c.options.after)
+      if (c.options.type) params.set('type', c.options.type)
+      if (c.options.source) params.set('source', c.options.source)
+      if (c.options.sortOrder !== 'desc') params.set('sort-order', c.options.sortOrder)
+
+      const qs = params.toString()
+      const path = `/v0/addresses/${c.args.address}/transactions${qs ? `?${qs}` : ''}`
+      txs = (await c.var.rest(path, undefined)) as any[]
+    }
 
     for (const t of txs) {
       yield {
