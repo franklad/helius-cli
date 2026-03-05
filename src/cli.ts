@@ -15,6 +15,7 @@ import { block } from './commands/block.js'
 import { network } from './commands/network.js'
 import { program } from './commands/program.js'
 import { ws } from './commands/ws.js'
+import { config } from './commands/config.js'
 
 const cli = Cli.create('helius', {
   description: 'Solana CLI for Helius APIs — DAS, transactions, fees, webhooks, wallet, ZK compression',
@@ -39,6 +40,7 @@ cli.command(mint)
 
 // Grouped sub-CLIs
 cli.command(account)
+cli.command(config)
 cli.command(das)
 cli.command(program)
 cli.command(tx)

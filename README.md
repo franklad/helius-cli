@@ -38,6 +38,7 @@ bun start <command>
 | `webhook <sub>` | Create, list, update, delete webhooks |
 | `ws <sub>` | WebSocket subscriptions — account, logs, slot, signature, program |
 | `zk <sub>` | ZK compression (accounts, tokens, proofs, ...) |
+| `config <sub>` | CLI configuration — API key, network, project |
 | `block <slot>` | Block details by slot number |
 | `network` | Solana network status — epoch, version, block height |
 
