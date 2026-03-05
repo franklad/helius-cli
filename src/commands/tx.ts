@@ -104,6 +104,7 @@ tx.command('history', {
     source: z.string().optional(),
     sortOrder: z.enum(['asc', 'desc']).default('desc'),
   }),
+  alias: { limit: 'l', before: 'b', after: 'a', type: 't', source: 's' },
   output: z.object({
     type: z.string(),
     description: z.string(),

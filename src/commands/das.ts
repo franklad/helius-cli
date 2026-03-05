@@ -51,6 +51,7 @@ das.command('assets', {
     showFungible: z.boolean().default(false),
     showNativeBalance: z.boolean().default(false),
   }),
+  alias: { page: 'p', limit: 'l' },
   output: z.object({
     total: z.number(),
     items: z.array(z.object({
@@ -102,6 +103,7 @@ das.command('search', {
     page: z.number().default(1),
     limit: z.number().default(20),
   }),
+  alias: { owner: 'o', collection: 'c', creator: 'r', page: 'p', limit: 'l' },
   output: z.object({
     total: z.number(),
     items: z.array(z.object({
@@ -292,6 +294,7 @@ das.command('by-authority', {
   description: 'Get assets controlled by an authority address',
   args: z.object({ authority: z.string() }),
   options: z.object({ page: z.number().default(1), limit: z.number().default(20) }),
+  alias: { page: 'p', limit: 'l' },
   output: paginatedAssetsSchema,
   examples: [
     { args: { authority: '<authority-address>' }, description: 'List by authority' },
@@ -316,6 +319,7 @@ das.command('by-creator', {
   description: 'Get assets created by a specific address',
   args: z.object({ creator: z.string() }),
   options: z.object({ page: z.number().default(1), limit: z.number().default(20) }),
+  alias: { page: 'p', limit: 'l' },
   output: paginatedAssetsSchema,
   examples: [
     { args: { creator: '<creator-address>' }, description: 'List by creator' },
@@ -340,6 +344,7 @@ das.command('by-group', {
   description: 'Get assets in a group/collection',
   args: z.object({ groupValue: z.string() }),
   options: z.object({ groupKey: z.string().default('collection'), page: z.number().default(1), limit: z.number().default(20) }),
+  alias: { page: 'p', limit: 'l' },
   output: paginatedAssetsSchema,
   examples: [
     { args: { groupValue: '<collection-address>' }, description: 'List collection assets' },
@@ -364,6 +369,7 @@ das.command('editions', {
   description: 'Get editions of a master NFT',
   args: z.object({ mint: z.string() }),
   options: z.object({ page: z.number().default(1), limit: z.number().default(20) }),
+  alias: { page: 'p', limit: 'l' },
   output: z.object({
     total: z.number(),
     masterEditionAddress: z.string(),
@@ -399,6 +405,7 @@ das.command('signatures', {
   description: 'Get transaction signatures for an asset',
   args: z.object({ id: z.string() }),
   options: z.object({ page: z.number().default(1), limit: z.number().default(20) }),
+  alias: { page: 'p', limit: 'l' },
   output: z.object({
     total: z.number(),
     items: z.array(z.object({ signature: z.string(), type: z.string() })),
@@ -438,6 +445,7 @@ das.command('token-accounts', {
     limit: z.number().default(20),
     showZeroBalance: z.boolean().default(false),
   }),
+  alias: { owner: 'o', mint: 'm', page: 'p', limit: 'l' },
   output: z.object({
     total: z.number(),
     tokenAccounts: z.array(z.object({

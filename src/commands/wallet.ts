@@ -94,6 +94,7 @@ wallet.command('balances', {
     showNative: z.boolean().default(true),
     showNfts: z.boolean().default(false),
   }),
+  alias: { page: 'p', limit: 'l' },
   output: z.object({
     totalUsdValue: z.number(),
     hasMore: z.boolean(),
@@ -173,6 +174,7 @@ wallet.command('history', {
     type: z.string().optional(),
     tokenAccounts: z.enum(['none', 'balanceChanged', 'all']).default('balanceChanged'),
   }),
+  alias: { limit: 'l', before: 'b', after: 'a', type: 't' },
   output: z.object({
     hasMore: z.boolean(),
     nextCursor: z.string().optional(),
@@ -242,6 +244,7 @@ wallet.command('transfers', {
     limit: z.number().default(50),
     cursor: z.string().optional(),
   }),
+  alias: { limit: 'l', cursor: 'c' },
   output: z.object({
     hasMore: z.boolean(),
     nextCursor: z.string().optional(),

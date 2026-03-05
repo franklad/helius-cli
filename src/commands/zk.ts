@@ -14,6 +14,7 @@ zk.command('get-account', {
     address: z.string().optional(),
     hash: z.string().optional(),
   }),
+  alias: { address: 'a', hash: 'h' },
   output: z.object({
     hash: z.string(),
     owner: z.string(),
@@ -88,6 +89,7 @@ zk.command('accounts-by-owner', {
   description: 'Get all compressed accounts for an owner',
   args: z.object({ owner: z.string() }),
   options: z.object({ limit: z.number().optional(), cursor: z.string().optional() }),
+  alias: { limit: 'l', cursor: 'c' },
   output: z.object({
     cursor: z.string().optional(),
     items: z.array(z.object({
@@ -119,6 +121,7 @@ zk.command('accounts-by-owner', {
 zk.command('get-balance', {
   description: 'Get lamports balance of a compressed account',
   options: z.object({ address: z.string().optional(), hash: z.string().optional() }),
+  alias: { address: 'a', hash: 'h' },
   output: z.object({ balance: z.number() }),
   async run(c) {
     if (!c.options.address && !c.options.hash) {
@@ -152,6 +155,7 @@ zk.command('mint-holders', {
   description: 'List holders of a compressed token mint',
   args: z.object({ mint: z.string() }),
   options: z.object({ limit: z.number().optional(), cursor: z.string().optional() }),
+  alias: { limit: 'l', cursor: 'c' },
   output: z.object({
     cursor: z.string().optional(),
     items: z.array(z.object({ owner: z.string(), balance: z.number() })),
@@ -175,6 +179,7 @@ zk.command('mint-holders', {
 zk.command('token-balance', {
   description: 'Get balance of a compressed token account',
   options: z.object({ address: z.string().optional(), hash: z.string().optional() }),
+  alias: { address: 'a', hash: 'h' },
   output: z.object({ amount: z.number() }),
   async run(c) {
     if (!c.options.address && !c.options.hash) {
@@ -195,6 +200,7 @@ zk.command('token-accounts-by-delegate', {
   description: 'Get compressed token accounts by delegate',
   args: z.object({ delegate: z.string() }),
   options: z.object({ mint: z.string().optional(), limit: z.number().optional(), cursor: z.string().optional() }),
+  alias: { mint: 'm', limit: 'l', cursor: 'c' },
   output: z.object({
     cursor: z.string().optional(),
     items: z.array(z.object({
@@ -232,6 +238,7 @@ zk.command('token-accounts-by-owner', {
   description: 'Get compressed token accounts by owner',
   args: z.object({ owner: z.string() }),
   options: z.object({ mint: z.string().optional(), limit: z.number().optional(), cursor: z.string().optional() }),
+  alias: { mint: 'm', limit: 'l', cursor: 'c' },
   output: z.object({
     cursor: z.string().optional(),
     items: z.array(z.object({
@@ -269,6 +276,7 @@ zk.command('token-balances-by-owner', {
   description: 'Get all compressed token balances for an owner',
   args: z.object({ owner: z.string() }),
   options: z.object({ mint: z.string().optional(), limit: z.number().optional(), cursor: z.string().optional() }),
+  alias: { mint: 'm', limit: 'l', cursor: 'c' },
   output: z.object({
     cursor: z.string().optional(),
     items: z.array(z.object({ mint: z.string(), balance: z.number() })),
@@ -315,6 +323,7 @@ zk.command('sigs-for-address', {
   description: 'Get tx signatures for an address',
   args: z.object({ address: z.string() }),
   options: z.object({ limit: z.number().optional(), cursor: z.string().optional() }),
+  alias: { limit: 'l', cursor: 'c' },
   output: z.object({
     cursor: z.string().optional(),
     items: z.array(z.object({ signature: z.string(), slot: z.number(), blockTime: z.number() })),
@@ -341,6 +350,7 @@ zk.command('sigs-for-owner', {
   description: 'Get tx signatures where address is the owner',
   args: z.object({ owner: z.string() }),
   options: z.object({ limit: z.number().optional(), cursor: z.string().optional() }),
+  alias: { limit: 'l', cursor: 'c' },
   output: z.object({
     cursor: z.string().optional(),
     items: z.array(z.object({ signature: z.string(), slot: z.number(), blockTime: z.number() })),
@@ -367,6 +377,7 @@ zk.command('sigs-for-token-owner', {
   description: 'Get tx signatures for token transactions by owner',
   args: z.object({ owner: z.string() }),
   options: z.object({ limit: z.number().optional(), cursor: z.string().optional() }),
+  alias: { limit: 'l', cursor: 'c' },
   output: z.object({
     cursor: z.string().optional(),
     items: z.array(z.object({ signature: z.string(), slot: z.number(), blockTime: z.number() })),
@@ -414,6 +425,7 @@ zk.command('indexer-slot', {
 zk.command('latest-sigs', {
   description: 'Get most recent compression transaction signatures',
   options: z.object({ limit: z.number().optional(), cursor: z.string().optional() }),
+  alias: { limit: 'l', cursor: 'c' },
   output: z.object({
     cursor: z.string().optional(),
     items: z.array(z.object({ signature: z.string(), slot: z.number(), blockTime: z.number() })),
@@ -438,6 +450,7 @@ zk.command('latest-sigs', {
 zk.command('latest-non-voting-sigs', {
   description: 'Get recent non-voting transaction signatures',
   options: z.object({ limit: z.number().optional(), cursor: z.string().optional() }),
+  alias: { limit: 'l', cursor: 'c' },
   output: z.object({
     cursor: z.string().optional(),
     items: z.array(z.object({
