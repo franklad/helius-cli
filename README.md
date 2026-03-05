@@ -36,6 +36,7 @@ bun start <command>
 | `tx <sub>` | Parse transactions, get history |
 | `wallet <sub>` | Wallet identity, balances, history, transfers |
 | `webhook <sub>` | Create, list, update, delete webhooks |
+| `ws <sub>` | WebSocket subscriptions — account, logs, slot, signature, program |
 | `zk <sub>` | ZK compression (accounts, tokens, proofs, ...) |
 | `block <slot>` | Block details by slot number |
 | `network` | Solana network status — epoch, version, block height |
