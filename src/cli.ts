@@ -10,6 +10,10 @@ import { tx } from './commands/tx.js'
 import { wallet } from './commands/wallet.js'
 import { webhook } from './commands/webhook.js'
 import { zk } from './commands/zk.js'
+import { account } from './commands/account.js'
+import { block } from './commands/block.js'
+import { network } from './commands/network.js'
+import { program } from './commands/program.js'
 
 const cli = Cli.create('helius', {
   description: 'Solana CLI for Helius APIs — DAS, transactions, fees, webhooks, wallet, ZK compression',
@@ -33,10 +37,16 @@ cli.command(send)
 cli.command(mint)
 
 // Grouped sub-CLIs
+cli.command(account)
 cli.command(das)
+cli.command(program)
 cli.command(tx)
 cli.command(wallet)
 cli.command(webhook)
 cli.command(zk)
+
+// Solana RPC utilities
+cli.command(block)
+cli.command(network)
 
 cli.serve(process.argv.slice(2))
