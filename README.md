@@ -28,12 +28,16 @@ bun start <command>
 |---|---|
 | `status` | Helius RPC health, slot, TPS |
 | `priority-fee` | Priority fee estimates for accounts |
-| `send` | Send transactions via Helius Sender |
+| `send <sub>` | Send transactions — sender, broadcast, poll, compute-units |
 | `mint` | Mint compressed NFTs |
+| `account <sub>` | Account info, balance, token balances, token holders |
 | `das <sub>` | DAS asset queries (search, get, proof, token-accounts, ...) |
+| `program <sub>` | Program accounts via Helius enhanced RPC (1 credit vs 10) |
 | `tx <sub>` | Parse transactions, get history |
 | `wallet <sub>` | Wallet identity, balances, history, transfers |
 | `webhook <sub>` | Create, list, update, delete webhooks |
 | `zk <sub>` | ZK compression (accounts, tokens, proofs, ...) |
+| `block <slot>` | Block details by slot number |
+| `network` | Solana network status — epoch, version, block height |
 
 Run `helius --help` or `helius <command> --help` for full details.

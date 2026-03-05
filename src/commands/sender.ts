@@ -1,8 +1,15 @@
 import { Cli, z } from 'incur'
 import { heliusVars } from '../types.js'
 
-export const send = Cli.create('send', {
-  description: 'Send a transaction via Helius Sender. Requires Jito tip (min 0.0002 SOL) + compute unit price.',
+const send = Cli.create('send', {
+  description: 'Send transactions — via Helius Sender, standard RPC, or simulate',
+  vars: heliusVars,
+})
+
+// ── sender (Helius fast-send) ──
+
+send.command('sender', {
+  description: 'Send a transaction via Helius Sender (Jito tip required)',
   args: z.object({ transaction: z.string() }),
   options: z.object({
     swqosOnly: z.boolean().default(false),
@@ -10,12 +17,11 @@ export const send = Cli.create('send', {
     skipPreflight: z.boolean().default(true),
     maxRetries: z.number().default(0),
   }),
-  vars: heliusVars,
   output: z.object({ signature: z.string() }),
   examples: [
-    { args: { transaction: '<base64-tx>' }, description: 'Send a transaction' },
+    { args: { transaction: '<base64-tx>' }, description: 'Send via Helius Sender' },
     { args: { transaction: '<base58-tx>' }, options: { encoding: 'base58' }, description: 'Send base58-encoded' },
-    { args: { transaction: '<base64-tx>' }, options: { swqosOnly: true }, description: 'Route via SWQOS only (lower tip)' },
+    { args: { transaction: '<base64-tx>' }, options: { swqosOnly: true }, description: 'Route via SWQOS only' },
   ],
   async run(c) {
     const params = new URLSearchParams({ 'api-key': c.var.apiKey })
@@ -53,9 +59,153 @@ export const send = Cli.create('send', {
     return c.ok({ signature: json.result! }, {
       cta: {
         commands: [
+          { command: 'send poll', args: { signature: json.result! }, description: 'Poll for confirmation' },
           { command: 'tx parse', args: { signature: json.result! }, description: 'Parse the transaction' },
         ],
       },
     })
   },
 })
+
+// ── broadcast (standard RPC sendTransaction) ──
+
+send.command('broadcast', {
+  description: 'Broadcast a transaction via standard RPC',
+  args: z.object({ transaction: z.string() }),
+  options: z.object({
+    encoding: z.enum(['base64', 'base58']).default('base64'),
+    skipPreflight: z.boolean().default(true),
+    maxRetries: z.number().default(0),
+  }),
+  output: z.object({ signature: z.string() }),
+  examples: [
+    { args: { transaction: '<base64-tx>' }, description: 'Broadcast via standard RPC' },
+  ],
+  async run(c) {
+    const signature = (await c.var.rpc('sendTransaction', [
+      c.args.transaction,
+      {
+        encoding: c.options.encoding,
+        skipPreflight: c.options.skipPreflight,
+        maxRetries: c.options.maxRetries,
+      },
+    ])) as string
+
+    return c.ok({ signature }, {
+      cta: {
+        commands: [
+          { command: 'send poll', args: { signature }, description: 'Poll for confirmation' },
+          { command: 'tx parse', args: { signature }, description: 'Parse the transaction' },
+        ],
+      },
+    })
+  },
+})
+
+// ── poll (wait for confirmation) ──
+
+send.command('poll', {
+  description: 'Poll a transaction signature until confirmed or timeout',
+  args: z.object({ signature: z.string() }),
+  options: z.object({
+    commitment: z.enum(['processed', 'confirmed', 'finalized']).default('confirmed'),
+    timeout: z.coerce.number().default(60),
+  }),
+  alias: { commitment: 'c', timeout: 't' },
+  output: z.object({
+    signature: z.string(),
+    status: z.string(),
+    slot: z.number().optional(),
+    err: z.unknown().optional(),
+  }),
+  examples: [
+    { args: { signature: '<signature>' }, description: 'Wait for confirmation' },
+    { args: { signature: '<signature>' }, options: { commitment: 'finalized', timeout: 120 }, description: 'Wait for finalization' },
+  ],
+  async run(c) {
+    const deadline = Date.now() + c.options.timeout * 1000
+    const target = c.options.commitment
+
+    while (Date.now() < deadline) {
+      const result = (await c.var.rpc('getSignatureStatuses', [
+        [c.args.signature],
+        { searchTransactionHistory: true },
+      ])) as { value: (null | { slot: number; confirmationStatus: string; err: unknown })[] }
+
+      const status = result.value?.[0]
+      if (status) {
+        const level = status.confirmationStatus
+        const reached =
+          target === 'processed' ? true :
+          target === 'confirmed' ? level === 'confirmed' || level === 'finalized' :
+          level === 'finalized'
+
+        if (reached || status.err) {
+          return c.ok({
+            signature: c.args.signature,
+            status: level,
+            slot: status.slot,
+            ...(status.err ? { err: status.err } : {}),
+          }, {
+            cta: {
+              commands: [
+                { command: 'tx parse', args: { signature: c.args.signature }, description: 'Parse the transaction' },
+              ],
+            },
+          })
+        }
+      }
+
+      await new Promise((r) => setTimeout(r, 2000))
+    }
+
+    return c.error({
+      code: 'POLL_TIMEOUT',
+      message: `Transaction not ${target} after ${c.options.timeout}s`,
+      retryable: true,
+    })
+  },
+})
+
+// ── compute-units (simulate to estimate CU) ──
+
+send.command('compute-units', {
+  description: 'Simulate a transaction to estimate compute units',
+  args: z.object({ transaction: z.string() }),
+  options: z.object({
+    encoding: z.enum(['base64', 'base58']).default('base64'),
+  }),
+  output: z.object({
+    unitsConsumed: z.number(),
+  }),
+  examples: [
+    { args: { transaction: '<base64-tx>' }, description: 'Estimate compute units' },
+  ],
+  async run(c) {
+    const result = (await c.var.rpc('simulateTransaction', [
+      c.args.transaction,
+      { encoding: c.options.encoding, sigVerify: false },
+    ])) as { value: { unitsConsumed?: number; err?: unknown; logs?: string[] } }
+
+    if (result.value?.err) {
+      return c.error({
+        code: 'SIMULATION_FAILED',
+        message: `Simulation failed: ${JSON.stringify(result.value.err)}`,
+        retryable: false,
+      })
+    }
+
+    return c.ok({
+      unitsConsumed: result.value?.unitsConsumed ?? 0,
+    }, {
+      cta: {
+        commands: [
+          { command: 'send sender', description: 'Send the transaction' },
+          { command: 'priority-fee', description: 'Check priority fee estimates' },
+        ],
+      },
+    })
+  },
+})
+
+export { send }
