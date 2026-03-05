@@ -1,9 +1,9 @@
 import { Cli, z } from 'incur'
-import { webhookCall } from '../client.js'
-import { heliusEnv } from '../types.js'
+import { heliusVars } from '../types.js'
 
 const webhook = Cli.create('webhook', {
   description: 'Manage Helius webhooks (create, get, list, update, delete)',
+  vars: heliusVars,
 })
 
 webhook.command('create', {
@@ -16,7 +16,6 @@ webhook.command('create', {
     authHeader: z.string().optional(),
     txnStatus: z.enum(['success', 'failed', 'all']).optional(),
   }),
-  env: heliusEnv,
   output: z.object({
     webhookId: z.string(),
     url: z.string(),
@@ -43,7 +42,7 @@ webhook.command('create', {
     if (c.options.authHeader) body.authHeader = c.options.authHeader
     if (c.options.txnStatus) body.txnStatus = c.options.txnStatus
 
-    const result = (await webhookCall(c.env, '/v0/webhooks', {
+    const result = (await c.var.webhook('/v0/webhooks', {
       body,
     })) as { webhookID: string; webhookURL: string }
 
@@ -68,7 +67,6 @@ webhook.command('create', {
 webhook.command('get', {
   description: 'Get details of a specific webhook',
   args: z.object({ id: z.string() }),
-  env: heliusEnv,
   output: z.object({
     webhookId: z.string(),
     url: z.string(),
@@ -80,8 +78,7 @@ webhook.command('get', {
     { args: { id: '<webhook-id>' }, description: 'Get webhook details' },
   ],
   async run(c) {
-    const result = (await webhookCall(
-      c.env,
+    const result = (await c.var.webhook(
       `/v0/webhooks/${c.args.id}`,
     )) as any
 
@@ -105,7 +102,6 @@ webhook.command('get', {
 
 webhook.command('list', {
   description: 'List all webhooks',
-  env: heliusEnv,
   output: z.array(
     z.object({
       webhookId: z.string(),
@@ -116,8 +112,7 @@ webhook.command('list', {
   ),
   examples: [{ description: 'List all webhooks' }],
   async run(c) {
-    const result = (await webhookCall(
-      c.env,
+    const result = (await c.var.webhook(
       '/v0/webhooks',
     )) as any[]
 
@@ -151,7 +146,6 @@ webhook.command('update', {
     authHeader: z.string().optional(),
     txnStatus: z.enum(['success', 'failed', 'all']).optional(),
   }),
-  env: heliusEnv,
   output: z.object({
     webhookId: z.string(),
     url: z.string(),
@@ -172,7 +166,7 @@ webhook.command('update', {
     if (c.options.authHeader) body.authHeader = c.options.authHeader
     if (c.options.txnStatus) body.txnStatus = c.options.txnStatus
 
-    const result = (await webhookCall(c.env, `/v0/webhooks/${c.args.id}`, {
+    const result = (await c.var.webhook(`/v0/webhooks/${c.args.id}`, {
       method: 'PUT',
       body,
     })) as any
@@ -195,7 +189,6 @@ webhook.command('update', {
 webhook.command('delete', {
   description: 'Delete a webhook by ID',
   args: z.object({ id: z.string() }),
-  env: heliusEnv,
   output: z.object({ deleted: z.boolean(), webhookId: z.string() }),
   examples: [
     {
@@ -204,7 +197,7 @@ webhook.command('delete', {
     },
   ],
   async run(c) {
-    await webhookCall(c.env, `/v0/webhooks/${c.args.id}`, {
+    await c.var.webhook(`/v0/webhooks/${c.args.id}`, {
       method: 'DELETE',
     })
 

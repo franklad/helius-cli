@@ -1,6 +1,5 @@
 import { Cli, z } from 'incur'
-import { rpcCall } from '../client.js'
-import { heliusEnv } from '../types.js'
+import { heliusVars } from '../types.js'
 
 export const mint = Cli.create('mint', {
   description: 'Mint a compressed NFT (deprecated — use ZK Compression API for new projects)',
@@ -12,7 +11,7 @@ export const mint = Cli.create('mint', {
     uri: z.string().default(''),
     collection: z.string().optional(),
   }),
-  env: heliusEnv,
+  vars: heliusVars,
   output: z.object({
     signature: z.string(),
     minted: z.boolean(),
@@ -35,8 +34,7 @@ export const mint = Cli.create('mint', {
     }
     if (c.options.collection) params.collection = c.options.collection
 
-    const result = (await rpcCall(
-      c.env,
+    const result = (await c.var.rpc(
       'mintCompressedNft',
       params,
     )) as { signature: string; minted: boolean; assetId: string }

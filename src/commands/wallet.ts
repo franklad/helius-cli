@@ -1,9 +1,9 @@
 import { Cli, z } from 'incur'
-import { walletCall } from '../client.js'
-import { heliusEnv } from '../types.js'
+import { heliusVars } from '../types.js'
 
 const wallet = Cli.create('wallet', {
   description: 'Wallet API — balances, history, transfers, identity',
+  vars: heliusVars,
 })
 
 // ── identity ──
@@ -11,7 +11,6 @@ const wallet = Cli.create('wallet', {
 wallet.command('identity', {
   description: 'Get identity info for a wallet address',
   args: z.object({ address: z.string() }),
-  env: heliusEnv,
   output: z.object({
     address: z.string(),
     type: z.string(),
@@ -23,8 +22,7 @@ wallet.command('identity', {
     { args: { address: '<wallet-address>' }, description: 'Look up wallet identity' },
   ],
   async run(c) {
-    const result = (await walletCall(
-      c.env,
+    const result = (await c.var.wallet(
       `/v1/wallet/${c.args.address}/identity`,
     )) as any
 
@@ -51,7 +49,6 @@ wallet.command('identity', {
 wallet.command('batch-identity', {
   description: 'Batch identity lookup for multiple addresses',
   args: z.object({ addresses: z.string() }),
-  env: heliusEnv,
   output: z.array(z.object({
     address: z.string(),
     type: z.string(),
@@ -64,7 +61,7 @@ wallet.command('batch-identity', {
   ],
   async run(c) {
     const addresses = c.args.addresses.split(',').map((s) => s.trim())
-    const result = (await walletCall(c.env, '/v1/wallet/batch-identity', {
+    const result = (await c.var.wallet('/v1/wallet/batch-identity', {
       body: { addresses },
     })) as any[]
 
@@ -97,7 +94,6 @@ wallet.command('balances', {
     showNative: z.boolean().default(true),
     showNfts: z.boolean().default(false),
   }),
-  env: heliusEnv,
   output: z.object({
     totalUsdValue: z.number(),
     hasMore: z.boolean(),
@@ -129,8 +125,7 @@ wallet.command('balances', {
       showNfts: String(c.options.showNfts),
     })
 
-    const result = (await walletCall(
-      c.env,
+    const result = (await c.var.wallet(
       `/v1/wallet/${c.args.address}/balances?${params}`,
     )) as any
 
@@ -178,7 +173,6 @@ wallet.command('history', {
     type: z.string().optional(),
     tokenAccounts: z.enum(['none', 'balanceChanged', 'all']).default('balanceChanged'),
   }),
-  env: heliusEnv,
   output: z.object({
     hasMore: z.boolean(),
     nextCursor: z.string().optional(),
@@ -207,8 +201,7 @@ wallet.command('history', {
     if (c.options.type) params.set('type', c.options.type)
     if (c.options.tokenAccounts !== 'balanceChanged') params.set('tokenAccounts', c.options.tokenAccounts)
 
-    const result = (await walletCall(
-      c.env,
+    const result = (await c.var.wallet(
       `/v1/wallet/${c.args.address}/history?${params}`,
     )) as any
 
@@ -249,7 +242,6 @@ wallet.command('transfers', {
     limit: z.number().default(50),
     cursor: z.string().optional(),
   }),
-  env: heliusEnv,
   output: z.object({
     hasMore: z.boolean(),
     nextCursor: z.string().optional(),
@@ -271,8 +263,7 @@ wallet.command('transfers', {
     const params = new URLSearchParams({ limit: String(c.options.limit) })
     if (c.options.cursor) params.set('cursor', c.options.cursor)
 
-    const result = (await walletCall(
-      c.env,
+    const result = (await c.var.wallet(
       `/v1/wallet/${c.args.address}/transfers?${params}`,
     )) as any
 
@@ -306,7 +297,6 @@ wallet.command('transfers', {
 wallet.command('funded-by', {
   description: 'Find the original funding source of a wallet',
   args: z.object({ address: z.string() }),
-  env: heliusEnv,
   output: z.object({
     funder: z.string(),
     funderName: z.string().optional(),
@@ -323,8 +313,7 @@ wallet.command('funded-by', {
     { args: { address: '<wallet>' }, description: 'Find who funded this wallet' },
   ],
   async run(c) {
-    const result = (await walletCall(
-      c.env,
+    const result = (await c.var.wallet(
       `/v1/wallet/${c.args.address}/funded-by`,
     )) as any
 

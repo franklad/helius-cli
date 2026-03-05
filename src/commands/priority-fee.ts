@@ -1,6 +1,5 @@
 import { Cli, z } from 'incur'
-import { rpcCall } from '../client.js'
-import { heliusEnv } from '../types.js'
+import { heliusVars } from '../types.js'
 
 export const priorityFee = Cli.create('priority-fee', {
   description: 'Priority fee estimates in microlamports',
@@ -11,7 +10,7 @@ export const priorityFee = Cli.create('priority-fee', {
     evaluateEmptySlotAsZero: z.boolean().default(false),
   }),
   alias: { accounts: 'a' },
-  env: heliusEnv,
+  vars: heliusVars,
   output: z.object({
     min: z.number(),
     low: z.number(),
@@ -38,8 +37,7 @@ export const priorityFee = Cli.create('priority-fee', {
       params.accountKeys = c.options.accounts.split(',').map((s) => s.trim())
     }
 
-    const result = (await rpcCall(
-      c.env,
+    const result = (await c.var.rpc(
       'getPriorityFeeEstimate',
       [params],
     )) as { priorityFeeLevels: Record<string, number> }

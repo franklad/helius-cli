@@ -1,9 +1,9 @@
 import { Cli, z } from 'incur'
-import { restCall } from '../client.js'
-import { heliusEnv } from '../types.js'
+import { heliusVars } from '../types.js'
 
 const tx = Cli.create('tx', {
   description: 'Enhanced transactions — parse and history',
+  vars: heliusVars,
 })
 
 // ── parse (getTransactions) ──
@@ -11,7 +11,6 @@ const tx = Cli.create('tx', {
 tx.command('parse', {
   description: 'Parse a single Solana transaction',
   args: z.object({ signature: z.string() }),
-  env: heliusEnv,
   output: z.object({
     type: z.string(),
     source: z.string(),
@@ -42,7 +41,7 @@ tx.command('parse', {
     { args: { signature: '<tx-signature>' }, description: 'Parse a transaction' },
   ],
   async run(c) {
-    const txs = (await restCall(c.env, '/v0/transactions', {
+    const txs = (await c.var.rest('/v0/transactions', {
       body: { transactions: [c.args.signature] },
     })) as any[]
 
@@ -105,7 +104,6 @@ tx.command('history', {
     source: z.string().optional(),
     sortOrder: z.enum(['asc', 'desc']).default('desc'),
   }),
-  env: heliusEnv,
   output: z.object({
     type: z.string(),
     description: z.string(),
@@ -129,7 +127,7 @@ tx.command('history', {
     const qs = params.toString()
     const path = `/v0/addresses/${c.args.address}/transactions${qs ? `?${qs}` : ''}`
 
-    const txs = (await restCall(c.env, path, undefined)) as any[]
+    const txs = (await c.var.rest(path, undefined)) as any[]
 
     for (const t of txs) {
       yield {

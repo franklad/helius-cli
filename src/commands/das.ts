@@ -1,6 +1,5 @@
 import { Cli, z } from 'incur'
-import { rpcCall } from '../client.js'
-import { heliusEnv } from '../types.js'
+import { heliusVars } from '../types.js'
 
 function mapAsset(item: any) {
   return {
@@ -38,6 +37,7 @@ const paginatedAssetsSchema = z.object({
 
 const das = Cli.create('das', {
   description: 'Digital Asset Standard — assets, proofs, search, token accounts',
+  vars: heliusVars,
 })
 
 // ── assets (getAssetsByOwner) ──
@@ -51,7 +51,6 @@ das.command('assets', {
     showFungible: z.boolean().default(false),
     showNativeBalance: z.boolean().default(false),
   }),
-  env: heliusEnv,
   output: z.object({
     total: z.number(),
     items: z.array(z.object({
@@ -67,7 +66,7 @@ das.command('assets', {
     { args: { address: '<wallet-address>' }, options: { showFungible: true, limit: 50 }, description: 'Include fungible tokens' },
   ],
   async run(c) {
-    const result = (await rpcCall(c.env, 'getAssetsByOwner', {
+    const result = (await c.var.rpc('getAssetsByOwner', {
       ownerAddress: c.args.address,
       page: c.options.page,
       limit: c.options.limit,
@@ -103,7 +102,6 @@ das.command('search', {
     page: z.number().default(1),
     limit: z.number().default(20),
   }),
-  env: heliusEnv,
   output: z.object({
     total: z.number(),
     items: z.array(z.object({
@@ -128,7 +126,7 @@ das.command('search', {
     if (c.options.creator) params.creatorAddress = c.options.creator
     if (c.options.compressed !== undefined) params.compressed = c.options.compressed
 
-    const result = (await rpcCall(c.env, 'searchAssets', params)) as { total: number; items: any[] }
+    const result = (await c.var.rpc('searchAssets', params)) as { total: number; items: any[] }
 
     const items = result.items.map(mapAsset)
 
@@ -151,7 +149,6 @@ das.command('search', {
 das.command('get', {
   description: 'Get details for a single asset by ID',
   args: z.object({ id: z.string() }),
-  env: heliusEnv,
   output: z.object({
     id: z.string(),
     name: z.string(),
@@ -174,7 +171,7 @@ das.command('get', {
     { args: { id: '<asset-mint-address>' }, description: 'Get asset details' },
   ],
   async run(c) {
-    const result = (await rpcCall(c.env, 'getAsset', { id: c.args.id })) as any
+    const result = (await c.var.rpc('getAsset', { id: c.args.id })) as any
 
     return c.ok({
       ...mapAsset(result),
@@ -203,14 +200,13 @@ das.command('get', {
 das.command('get-batch', {
   description: 'Get details for multiple assets by IDs',
   args: z.object({ ids: z.string() }),
-  env: heliusEnv,
   output: z.array(assetItemSchema),
   examples: [
     { args: { ids: '<id1>,<id2>,<id3>' }, description: 'Get multiple assets' },
   ],
   async run(c) {
     const ids = c.args.ids.split(',').map((s) => s.trim())
-    const result = (await rpcCall(c.env, 'getAssetBatch', { ids })) as any[]
+    const result = (await c.var.rpc('getAssetBatch', { ids })) as any[]
 
     return c.ok(result.map(mapAsset), {
       cta: {
@@ -228,7 +224,6 @@ das.command('get-batch', {
 das.command('proof', {
   description: 'Get merkle proof for a compressed asset',
   args: z.object({ id: z.string() }),
-  env: heliusEnv,
   output: z.object({
     root: z.string(),
     proof: z.array(z.string()),
@@ -240,7 +235,7 @@ das.command('proof', {
     { args: { id: '<compressed-asset-id>' }, description: 'Get merkle proof' },
   ],
   async run(c) {
-    const result = (await rpcCall(c.env, 'getAssetProof', { id: c.args.id })) as any
+    const result = (await c.var.rpc('getAssetProof', { id: c.args.id })) as any
 
     return c.ok({
       root: result.root,
@@ -261,7 +256,6 @@ das.command('proof', {
 das.command('proof-batch', {
   description: 'Get merkle proofs for multiple compressed assets',
   args: z.object({ ids: z.string() }),
-  env: heliusEnv,
   output: z.array(z.object({
     id: z.string(),
     root: z.string(),
@@ -275,7 +269,7 @@ das.command('proof-batch', {
   ],
   async run(c) {
     const ids = c.args.ids.split(',').map((s) => s.trim())
-    const result = (await rpcCall(c.env, 'getAssetProofBatch', { ids })) as Record<string, any>
+    const result = (await c.var.rpc('getAssetProofBatch', { ids })) as Record<string, any>
 
     return c.ok(Object.entries(result).map(([id, p]) => ({
       id,
@@ -298,13 +292,12 @@ das.command('by-authority', {
   description: 'Get assets controlled by an authority address',
   args: z.object({ authority: z.string() }),
   options: z.object({ page: z.number().default(1), limit: z.number().default(20) }),
-  env: heliusEnv,
   output: paginatedAssetsSchema,
   examples: [
     { args: { authority: '<authority-address>' }, description: 'List by authority' },
   ],
   async run(c) {
-    const result = (await rpcCall(c.env, 'getAssetsByAuthority', {
+    const result = (await c.var.rpc('getAssetsByAuthority', {
       authorityAddress: c.args.authority, page: c.options.page, limit: c.options.limit,
     })) as any
 
@@ -323,13 +316,12 @@ das.command('by-creator', {
   description: 'Get assets created by a specific address',
   args: z.object({ creator: z.string() }),
   options: z.object({ page: z.number().default(1), limit: z.number().default(20) }),
-  env: heliusEnv,
   output: paginatedAssetsSchema,
   examples: [
     { args: { creator: '<creator-address>' }, description: 'List by creator' },
   ],
   async run(c) {
-    const result = (await rpcCall(c.env, 'getAssetsByCreator', {
+    const result = (await c.var.rpc('getAssetsByCreator', {
       creatorAddress: c.args.creator, page: c.options.page, limit: c.options.limit,
     })) as any
 
@@ -348,13 +340,12 @@ das.command('by-group', {
   description: 'Get assets in a group/collection',
   args: z.object({ groupValue: z.string() }),
   options: z.object({ groupKey: z.string().default('collection'), page: z.number().default(1), limit: z.number().default(20) }),
-  env: heliusEnv,
   output: paginatedAssetsSchema,
   examples: [
     { args: { groupValue: '<collection-address>' }, description: 'List collection assets' },
   ],
   async run(c) {
-    const result = (await rpcCall(c.env, 'getAssetsByGroup', {
+    const result = (await c.var.rpc('getAssetsByGroup', {
       groupKey: c.options.groupKey, groupValue: c.args.groupValue, page: c.options.page, limit: c.options.limit,
     })) as any
 
@@ -373,7 +364,6 @@ das.command('editions', {
   description: 'Get editions of a master NFT',
   args: z.object({ mint: z.string() }),
   options: z.object({ page: z.number().default(1), limit: z.number().default(20) }),
-  env: heliusEnv,
   output: z.object({
     total: z.number(),
     masterEditionAddress: z.string(),
@@ -385,7 +375,7 @@ das.command('editions', {
     { args: { mint: '<master-edition-mint>' }, description: 'List editions' },
   ],
   async run(c) {
-    const result = (await rpcCall(c.env, 'getNftEditions', {
+    const result = (await c.var.rpc('getNftEditions', {
       mint: c.args.mint, page: c.options.page, limit: c.options.limit,
     })) as any
 
@@ -409,7 +399,6 @@ das.command('signatures', {
   description: 'Get transaction signatures for an asset',
   args: z.object({ id: z.string() }),
   options: z.object({ page: z.number().default(1), limit: z.number().default(20) }),
-  env: heliusEnv,
   output: z.object({
     total: z.number(),
     items: z.array(z.object({ signature: z.string(), type: z.string() })),
@@ -418,7 +407,7 @@ das.command('signatures', {
     { args: { id: '<asset-id>' }, description: 'Get signatures for asset' },
   ],
   async run(c) {
-    const result = (await rpcCall(c.env, 'getSignaturesForAsset', {
+    const result = (await c.var.rpc('getSignaturesForAsset', {
       id: c.args.id, page: c.options.page, limit: c.options.limit,
     })) as any
 
@@ -449,7 +438,6 @@ das.command('token-accounts', {
     limit: z.number().default(20),
     showZeroBalance: z.boolean().default(false),
   }),
-  env: heliusEnv,
   output: z.object({
     total: z.number(),
     tokenAccounts: z.array(z.object({
@@ -472,7 +460,7 @@ das.command('token-accounts', {
     if (c.options.owner) params.owner = c.options.owner
     if (c.options.mint) params.mint = c.options.mint
 
-    const result = (await rpcCall(c.env, 'getTokenAccounts', params)) as any
+    const result = (await c.var.rpc('getTokenAccounts', params)) as any
 
     return c.ok({
       total: result.total ?? 0,

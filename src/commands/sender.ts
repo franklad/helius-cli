@@ -1,5 +1,5 @@
 import { Cli, z } from 'incur'
-import { heliusEnv } from '../types.js'
+import { heliusVars } from '../types.js'
 
 export const send = Cli.create('send', {
   description: 'Send a transaction via Helius Sender. Requires Jito tip (min 0.0002 SOL) + compute unit price.',
@@ -10,7 +10,7 @@ export const send = Cli.create('send', {
     skipPreflight: z.boolean().default(true),
     maxRetries: z.number().default(0),
   }),
-  env: heliusEnv,
+  vars: heliusVars,
   output: z.object({ signature: z.string() }),
   examples: [
     { args: { transaction: '<base64-tx>' }, description: 'Send a transaction' },
@@ -18,7 +18,7 @@ export const send = Cli.create('send', {
     { args: { transaction: '<base64-tx>' }, options: { swqosOnly: true }, description: 'Route via SWQOS only (lower tip)' },
   ],
   async run(c) {
-    const params = new URLSearchParams({ 'api-key': c.env.HELIUS_API_KEY })
+    const params = new URLSearchParams({ 'api-key': c.var.apiKey })
     if (c.options.swqosOnly) params.set('swqos_only', 'true')
     const url = `https://sender.helius-rpc.com/fast?${params}`
 

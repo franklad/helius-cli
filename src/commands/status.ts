@@ -1,10 +1,9 @@
 import { Cli, z } from 'incur'
-import { rpcCall } from '../client.js'
-import { heliusEnv } from '../types.js'
+import { heliusVars } from '../types.js'
 
 export const status = Cli.create('status', {
   description: 'Health check for all Helius services',
-  env: heliusEnv,
+  vars: heliusVars,
   output: z.object({
     rpc: z.object({
       healthy: z.boolean(),
@@ -18,12 +17,12 @@ export const status = Cli.create('status', {
   examples: [{ description: 'Check all Helius services' }],
   async run(c) {
     const [health, slot, samples, senderOk] = await Promise.all([
-      rpcCall(c.env, 'getHealth').then(() => true).catch(() => false),
-      rpcCall(c.env, 'getSlot') as Promise<number>,
-      rpcCall(c.env, 'getRecentPerformanceSamples', [1]) as Promise<
+      c.var.rpc('getHealth').then(() => true).catch(() => false),
+      c.var.rpc('getSlot') as Promise<number>,
+      c.var.rpc('getRecentPerformanceSamples', [1]) as Promise<
         { numTransactions: number; samplePeriodSecs: number }[]
       >,
-      fetch(`https://sender.helius-rpc.com/ping?api-key=${c.env.HELIUS_API_KEY}`)
+      fetch(`https://sender.helius-rpc.com/ping?api-key=${c.var.apiKey}`)
         .then((r) => r.ok)
         .catch(() => false),
     ])

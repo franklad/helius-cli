@@ -1,9 +1,9 @@
 import { Cli, z } from 'incur'
-import { rpcCall } from '../client.js'
-import { heliusEnv } from '../types.js'
+import { heliusVars } from '../types.js'
 
 const zk = Cli.create('zk', {
   description: 'ZK Compression — compressed accounts, tokens, proofs',
+  vars: heliusVars,
 })
 
 // ── getCompressedAccount ──
@@ -14,7 +14,6 @@ zk.command('get-account', {
     address: z.string().optional(),
     hash: z.string().optional(),
   }),
-  env: heliusEnv,
   output: z.object({
     hash: z.string(),
     owner: z.string(),
@@ -31,7 +30,7 @@ zk.command('get-account', {
     if (!c.options.address && !c.options.hash) {
       return c.error({ code: 'MISSING_PARAM', message: 'Provide --address or --hash' })
     }
-    const result = (await rpcCall(c.env, 'getCompressedAccount', {
+    const result = (await c.var.rpc('getCompressedAccount', {
       address: c.options.address ?? null,
       hash: c.options.hash ?? null,
     })) as any
@@ -59,7 +58,6 @@ zk.command('get-account', {
 zk.command('get-account-proof', {
   description: 'Get merkle proof for a compressed account',
   args: z.object({ hash: z.string() }),
-  env: heliusEnv,
   output: z.object({
     hash: z.string(),
     leafIndex: z.number(),
@@ -69,7 +67,7 @@ zk.command('get-account-proof', {
     proof: z.array(z.string()),
   }),
   async run(c) {
-    const result = (await rpcCall(c.env, 'getCompressedAccountProof', {
+    const result = (await c.var.rpc('getCompressedAccountProof', {
       hash: c.args.hash,
     })) as any
     const v = result.value ?? result
@@ -90,7 +88,6 @@ zk.command('accounts-by-owner', {
   description: 'Get all compressed accounts for an owner',
   args: z.object({ owner: z.string() }),
   options: z.object({ limit: z.number().optional(), cursor: z.string().optional() }),
-  env: heliusEnv,
   output: z.object({
     cursor: z.string().optional(),
     items: z.array(z.object({
@@ -102,7 +99,7 @@ zk.command('accounts-by-owner', {
     })),
   }),
   async run(c) {
-    const result = (await rpcCall(c.env, 'getCompressedAccountsByOwner', {
+    const result = (await c.var.rpc('getCompressedAccountsByOwner', {
       owner: c.args.owner,
       limit: c.options.limit ?? null,
       cursor: c.options.cursor ?? null,
@@ -122,13 +119,12 @@ zk.command('accounts-by-owner', {
 zk.command('get-balance', {
   description: 'Get lamports balance of a compressed account',
   options: z.object({ address: z.string().optional(), hash: z.string().optional() }),
-  env: heliusEnv,
   output: z.object({ balance: z.number() }),
   async run(c) {
     if (!c.options.address && !c.options.hash) {
       return c.error({ code: 'MISSING_PARAM', message: 'Provide --address or --hash' })
     }
-    const result = (await rpcCall(c.env, 'getCompressedBalance', {
+    const result = (await c.var.rpc('getCompressedBalance', {
       address: c.options.address ?? null,
       hash: c.options.hash ?? null,
     })) as any
@@ -141,10 +137,9 @@ zk.command('get-balance', {
 zk.command('balance-by-owner', {
   description: 'Get total compressed balance for an owner',
   args: z.object({ owner: z.string() }),
-  env: heliusEnv,
   output: z.object({ balance: z.number() }),
   async run(c) {
-    const result = (await rpcCall(c.env, 'getCompressedBalanceByOwner', {
+    const result = (await c.var.rpc('getCompressedBalanceByOwner', {
       owner: c.args.owner,
     })) as any
     return c.ok({ balance: result.value ?? result })
@@ -157,13 +152,12 @@ zk.command('mint-holders', {
   description: 'List holders of a compressed token mint',
   args: z.object({ mint: z.string() }),
   options: z.object({ limit: z.number().optional(), cursor: z.string().optional() }),
-  env: heliusEnv,
   output: z.object({
     cursor: z.string().optional(),
     items: z.array(z.object({ owner: z.string(), balance: z.number() })),
   }),
   async run(c) {
-    const result = (await rpcCall(c.env, 'getCompressedMintTokenHolders', {
+    const result = (await c.var.rpc('getCompressedMintTokenHolders', {
       mint: c.args.mint,
       limit: c.options.limit ?? null,
       cursor: c.options.cursor ?? null,
@@ -181,13 +175,12 @@ zk.command('mint-holders', {
 zk.command('token-balance', {
   description: 'Get balance of a compressed token account',
   options: z.object({ address: z.string().optional(), hash: z.string().optional() }),
-  env: heliusEnv,
   output: z.object({ amount: z.number() }),
   async run(c) {
     if (!c.options.address && !c.options.hash) {
       return c.error({ code: 'MISSING_PARAM', message: 'Provide --address or --hash' })
     }
-    const result = (await rpcCall(c.env, 'getCompressedTokenAccountBalance', {
+    const result = (await c.var.rpc('getCompressedTokenAccountBalance', {
       address: c.options.address ?? null,
       hash: c.options.hash ?? null,
     })) as any
@@ -202,7 +195,6 @@ zk.command('token-accounts-by-delegate', {
   description: 'Get compressed token accounts by delegate',
   args: z.object({ delegate: z.string() }),
   options: z.object({ mint: z.string().optional(), limit: z.number().optional(), cursor: z.string().optional() }),
-  env: heliusEnv,
   output: z.object({
     cursor: z.string().optional(),
     items: z.array(z.object({
@@ -214,7 +206,7 @@ zk.command('token-accounts-by-delegate', {
     })),
   }),
   async run(c) {
-    const result = (await rpcCall(c.env, 'getCompressedTokenAccountsByDelegate', {
+    const result = (await c.var.rpc('getCompressedTokenAccountsByDelegate', {
       delegate: c.args.delegate,
       mint: c.options.mint ?? null,
       limit: c.options.limit ?? null,
@@ -240,7 +232,6 @@ zk.command('token-accounts-by-owner', {
   description: 'Get compressed token accounts by owner',
   args: z.object({ owner: z.string() }),
   options: z.object({ mint: z.string().optional(), limit: z.number().optional(), cursor: z.string().optional() }),
-  env: heliusEnv,
   output: z.object({
     cursor: z.string().optional(),
     items: z.array(z.object({
@@ -252,7 +243,7 @@ zk.command('token-accounts-by-owner', {
     })),
   }),
   async run(c) {
-    const result = (await rpcCall(c.env, 'getCompressedTokenAccountsByOwner', {
+    const result = (await c.var.rpc('getCompressedTokenAccountsByOwner', {
       owner: c.args.owner,
       mint: c.options.mint ?? null,
       limit: c.options.limit ?? null,
@@ -278,13 +269,12 @@ zk.command('token-balances-by-owner', {
   description: 'Get all compressed token balances for an owner',
   args: z.object({ owner: z.string() }),
   options: z.object({ mint: z.string().optional(), limit: z.number().optional(), cursor: z.string().optional() }),
-  env: heliusEnv,
   output: z.object({
     cursor: z.string().optional(),
     items: z.array(z.object({ mint: z.string(), balance: z.number() })),
   }),
   async run(c) {
-    const result = (await rpcCall(c.env, 'getCompressedTokenBalancesByOwnerV2', {
+    const result = (await c.var.rpc('getCompressedTokenBalancesByOwnerV2', {
       owner: c.args.owner,
       mint: c.options.mint ?? null,
       limit: c.options.limit ?? null,
@@ -303,12 +293,11 @@ zk.command('token-balances-by-owner', {
 zk.command('sigs-for-account', {
   description: 'Get tx signatures for a compressed account hash',
   args: z.object({ hash: z.string() }),
-  env: heliusEnv,
   output: z.object({
     items: z.array(z.object({ signature: z.string(), slot: z.number(), blockTime: z.number() })),
   }),
   async run(c) {
-    const result = (await rpcCall(c.env, 'getCompressionSignaturesForAccount', {
+    const result = (await c.var.rpc('getCompressionSignaturesForAccount', {
       hash: c.args.hash,
     })) as any
     const v = result.value ?? result
@@ -326,13 +315,12 @@ zk.command('sigs-for-address', {
   description: 'Get tx signatures for an address',
   args: z.object({ address: z.string() }),
   options: z.object({ limit: z.number().optional(), cursor: z.string().optional() }),
-  env: heliusEnv,
   output: z.object({
     cursor: z.string().optional(),
     items: z.array(z.object({ signature: z.string(), slot: z.number(), blockTime: z.number() })),
   }),
   async run(c) {
-    const result = (await rpcCall(c.env, 'getCompressionSignaturesForAddress', {
+    const result = (await c.var.rpc('getCompressionSignaturesForAddress', {
       address: c.args.address,
       limit: c.options.limit ?? null,
       cursor: c.options.cursor ?? null,
@@ -353,13 +341,12 @@ zk.command('sigs-for-owner', {
   description: 'Get tx signatures where address is the owner',
   args: z.object({ owner: z.string() }),
   options: z.object({ limit: z.number().optional(), cursor: z.string().optional() }),
-  env: heliusEnv,
   output: z.object({
     cursor: z.string().optional(),
     items: z.array(z.object({ signature: z.string(), slot: z.number(), blockTime: z.number() })),
   }),
   async run(c) {
-    const result = (await rpcCall(c.env, 'getCompressionSignaturesForOwner', {
+    const result = (await c.var.rpc('getCompressionSignaturesForOwner', {
       owner: c.args.owner,
       limit: c.options.limit ?? null,
       cursor: c.options.cursor ?? null,
@@ -380,13 +367,12 @@ zk.command('sigs-for-token-owner', {
   description: 'Get tx signatures for token transactions by owner',
   args: z.object({ owner: z.string() }),
   options: z.object({ limit: z.number().optional(), cursor: z.string().optional() }),
-  env: heliusEnv,
   output: z.object({
     cursor: z.string().optional(),
     items: z.array(z.object({ signature: z.string(), slot: z.number(), blockTime: z.number() })),
   }),
   async run(c) {
-    const result = (await rpcCall(c.env, 'getCompressionSignaturesForTokenOwner', {
+    const result = (await c.var.rpc('getCompressionSignaturesForTokenOwner', {
       owner: c.args.owner,
       limit: c.options.limit ?? null,
       cursor: c.options.cursor ?? null,
@@ -405,10 +391,9 @@ zk.command('sigs-for-token-owner', {
 
 zk.command('indexer-health', {
   description: 'Check ZK compression indexer health',
-  env: heliusEnv,
   output: z.object({ status: z.string() }),
   async run(c) {
-    const result = await rpcCall(c.env, 'getIndexerHealth')
+    const result = await c.var.rpc('getIndexerHealth')
     return c.ok({ status: String(result) })
   },
 })
@@ -417,10 +402,9 @@ zk.command('indexer-health', {
 
 zk.command('indexer-slot', {
   description: 'Get current slot of the compression indexer',
-  env: heliusEnv,
   output: z.object({ slot: z.number() }),
   async run(c) {
-    const result = await rpcCall(c.env, 'getIndexerSlot')
+    const result = await c.var.rpc('getIndexerSlot')
     return c.ok({ slot: result as number })
   },
 })
@@ -430,13 +414,12 @@ zk.command('indexer-slot', {
 zk.command('latest-sigs', {
   description: 'Get most recent compression transaction signatures',
   options: z.object({ limit: z.number().optional(), cursor: z.string().optional() }),
-  env: heliusEnv,
   output: z.object({
     cursor: z.string().optional(),
     items: z.array(z.object({ signature: z.string(), slot: z.number(), blockTime: z.number() })),
   }),
   async run(c) {
-    const result = (await rpcCall(c.env, 'getLatestCompressionSignatures', {
+    const result = (await c.var.rpc('getLatestCompressionSignatures', {
       limit: c.options.limit ?? null,
       cursor: c.options.cursor ?? null,
     })) as any
@@ -455,7 +438,6 @@ zk.command('latest-sigs', {
 zk.command('latest-non-voting-sigs', {
   description: 'Get recent non-voting transaction signatures',
   options: z.object({ limit: z.number().optional(), cursor: z.string().optional() }),
-  env: heliusEnv,
   output: z.object({
     cursor: z.string().optional(),
     items: z.array(z.object({
@@ -463,7 +445,7 @@ zk.command('latest-non-voting-sigs', {
     })),
   }),
   async run(c) {
-    const result = (await rpcCall(c.env, 'getLatestNonVotingSignatures', {
+    const result = (await c.var.rpc('getLatestNonVotingSignatures', {
       limit: c.options.limit ?? null,
       cursor: c.options.cursor ?? null,
     })) as any
@@ -482,7 +464,6 @@ zk.command('latest-non-voting-sigs', {
 zk.command('get-multiple-proofs', {
   description: 'Batch-get merkle proofs for compressed accounts',
   args: z.object({ hashes: z.string() }),
-  env: heliusEnv,
   output: z.array(z.object({
     hash: z.string(),
     leafIndex: z.number(),
@@ -495,7 +476,7 @@ zk.command('get-multiple-proofs', {
   ],
   async run(c) {
     const hashes = c.args.hashes.split(',').map((s) => s.trim())
-    const result = (await rpcCall(c.env, 'getMultipleCompressedAccountProofs', hashes)) as any
+    const result = (await c.var.rpc('getMultipleCompressedAccountProofs', hashes)) as any
     const v = result.value ?? result
     return c.ok((Array.isArray(v) ? v : []).map((p: any) => ({
       hash: p.hash, leafIndex: p.leafIndex, merkleTree: p.merkleTree, root: p.root, proof: p.proof,
@@ -511,7 +492,6 @@ zk.command('get-multiple-accounts', {
     addresses: z.string().optional(),
     hashes: z.string().optional(),
   }),
-  env: heliusEnv,
   output: z.object({
     items: z.array(z.object({
       hash: z.string(),
@@ -525,7 +505,7 @@ zk.command('get-multiple-accounts', {
     if (!c.options.addresses && !c.options.hashes) {
       return c.error({ code: 'MISSING_PARAM', message: 'Provide --addresses or --hashes' })
     }
-    const result = (await rpcCall(c.env, 'getMultipleCompressedAccounts', {
+    const result = (await c.var.rpc('getMultipleCompressedAccounts', {
       addresses: c.options.addresses ? c.options.addresses.split(',').map((s) => s.trim()) : null,
       hashes: c.options.hashes ? c.options.hashes.split(',').map((s) => s.trim()) : null,
     })) as any
@@ -543,7 +523,6 @@ zk.command('get-multiple-accounts', {
 zk.command('new-address-proofs', {
   description: 'Get proofs for multiple new addresses',
   args: z.object({ addresses: z.string() }),
-  env: heliusEnv,
   output: z.array(z.object({
     address: z.string(),
     root: z.string(),
@@ -553,7 +532,7 @@ zk.command('new-address-proofs', {
   })),
   async run(c) {
     const addresses = c.args.addresses.split(',').map((s) => s.trim())
-    const result = (await rpcCall(c.env, 'getMultipleNewAddressProofs', addresses)) as any
+    const result = (await c.var.rpc('getMultipleNewAddressProofs', addresses)) as any
     const v = result.value ?? result
     return c.ok((Array.isArray(v) ? v : []).map((p: any) => ({
       address: p.address, root: p.root, merkleTree: p.merkleTree, nextIndex: p.nextIndex, proof: p.proof,
@@ -566,7 +545,6 @@ zk.command('new-address-proofs', {
 zk.command('new-address-proofs-v2', {
   description: 'Get proofs for new addresses with tree specification',
   args: z.object({ pairs: z.string() }),
-  env: heliusEnv,
   output: z.array(z.object({
     address: z.string(),
     root: z.string(),
@@ -582,7 +560,7 @@ zk.command('new-address-proofs-v2', {
       const [address, tree] = pair.trim().split(':')
       return { address, tree }
     })
-    const result = (await rpcCall(c.env, 'getMultipleNewAddressProofsV2', params)) as any
+    const result = (await c.var.rpc('getMultipleNewAddressProofsV2', params)) as any
     const v = result.value ?? result
     return c.ok((Array.isArray(v) ? v : []).map((p: any) => ({
       address: p.address, root: p.root, merkleTree: p.merkleTree, nextIndex: p.nextIndex, proof: p.proof,
@@ -595,14 +573,13 @@ zk.command('new-address-proofs-v2', {
 zk.command('tx-compression', {
   description: 'Get transaction with compression metadata',
   args: z.object({ signature: z.string() }),
-  env: heliusEnv,
   output: z.object({
     closedAccounts: z.number(),
     openedAccounts: z.number(),
     signature: z.string(),
   }),
   async run(c) {
-    const result = (await rpcCall(c.env, 'getTransactionWithCompressionInfo', {
+    const result = (await c.var.rpc('getTransactionWithCompressionInfo', {
       signature: c.args.signature,
     })) as any
     const info = result.compression_info ?? result.compressionInfo ?? {}
@@ -628,7 +605,6 @@ zk.command('validity-proof', {
     hashes: z.string().optional(),
     newAddresses: z.string().optional(),
   }),
-  env: heliusEnv,
   output: z.object({
     compressedProof: z.object({ a: z.string(), b: z.string(), c: z.string() }),
     roots: z.array(z.string()),
@@ -649,7 +625,7 @@ zk.command('validity-proof', {
           })
         : [],
     }
-    const result = (await rpcCall(c.env, 'getValidityProof', params)) as any
+    const result = (await c.var.rpc('getValidityProof', params)) as any
     const v = result.value ?? result
     return c.ok({
       compressedProof: v.compressedProof,
